@@ -38,8 +38,7 @@ Write-Host "Grabbing the Microsoft Activation Script and activating..."
 Write-Host "Removing OneDrive and Edge..."
 Start-Process "$env:windir\System32\OneDriveSetup.exe" "/uninstall"
 $WebFile = "https://github.com/ShadowWhisperer/Remove-MS-Edge/blob/main/Remove-EdgeOnly.exe?raw=true"
-(New-Object System.Net.WebClient).DownloadFile($WebFile,"$env:APPDATA\$ProcName")
-Invoke-WebRequest "" | Out-File -FilePath "$env:temp\Remove-EdgeOnly.exe"
+(New-Object System.Net.WebClient).DownloadFile($WebFile, "$env:TEMP\Remove.EdgeOnly.exe")
 Start-Process -FilePath "$env:temp\Remove-EdgeOnly.exe" -Wait
 
 Write-Host "Installing default programs..."
