@@ -1,14 +1,16 @@
+# Start as an administrator
 if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
-        Write-Host "Copying script to temp folder and running..."
-        if (!(Test-Path -Path "$($env:TEMP)\psScripts.tmp\")) { New-Item "$($env:TEMP)\psScripts.tmp\" -Type Directory }
-        $ScriptName = Split-Path -Path $PSCommandPath -Leaf
-        Copy-Item -Path $PSCommandPath -Destination "$($env:TEMP)\psScripts.tmp\$($ScriptName)" -Force
-        Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$($env:TEMP)\psScripts.tmp\$($ScriptName)`"" -Verb RunAs; exit
-    }
+    Write-Host "Copying script to temp folder and running..."
+    if (!(Test-Path -Path "$($env:TEMP)\psScripts.tmp\")) { New-Item "$($env:TEMP)\psScripts.tmp\" -Type Directory }
+    $ScriptName = Split-Path -Path $PSCommandPath -Leaf
+    Copy-Item -Path $PSCommandPath -Destination "$($env:TEMP)\psScripts.tmp\$($ScriptName)" -Force
+    Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$($env:TEMP)\psScripts.tmp\$($ScriptName)`"" -Verb RunAs; exit
+}
 
 Write-Host "MATT'S OOBE SCRIPT" -ForegroundColor Blue
 Write-Host "====================" -ForegroundColor Blue
 Write-Host ""
+
 Write-Host "Installing VirtIO guest utils..."
 # find virtio.exe in either the D: or E: drive.
 $virtioPath = Get-ChildItem -Path D:\ -Recurse -Filter "virtio-win-guest-tools.exe" -ErrorAction SilentlyContinue
@@ -23,6 +25,7 @@ if ($null -eq $virtioPath) {
 
 Write-Host "Done." -ForegroundColor Green
 Write-Host ""
+
 Write-Host "Setting the VNC resolution to 1920x1080..."
 Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
 Install-Module -Name DisplaySettings -Scope CurrentUser -Force
@@ -34,13 +37,13 @@ Write-Host "Grabbing the Microsoft Activation Script and activating..."
 
 Write-Host "Removing OneDrive and Edge..."
 Start-Process "$env:windir\System32\OneDriveSetup.exe" "/uninstall"
-$WebFile = 
+$WebFile = "https://github.com/ShadowWhisperer/Remove-MS-Edge/blob/main/Remove-EdgeOnly.exe?raw=true"
 (New-Object System.Net.WebClient).DownloadFile($WebFile,"$env:APPDATA\$ProcName")
 Invoke-WebRequest "" | Out-File -FilePath "$env:temp\Remove-EdgeOnly.exe"
 Start-Process -FilePath "$env:temp\Remove-EdgeOnly.exe" -Wait
 
 Write-Host "Installing default programs..."
-winget install LibreWolf.LibreWolf 7zip.7zip VideoLAN.VLC 9PF4KZ2VN4W9 Notepad++.Notepad++ --silent --accept-source-agreements --accept-package-agreements --force
+winget install LibreWolf.LibreWolf 7zip.7zip VideoLAN.VLC 9PF4KZ2VN4W9 9MSMLRH6LZF3 --silent --accept-source-agreements --accept-package-agreements --force
 
 Write-Host "Setting LibreWolf as the default browser..."
 Start-Process "$env:programfiles\LibreWolf\librewolf.exe" "-setDefaultBrowser"
@@ -73,6 +76,6 @@ Remove-Item -Path "$env:public\Desktop\*" -Force -Recurse
 Remove-Item -Path "$env:USERPROFILE\Desktop\*" -Force -Recurse
 Write-Host "Done."
 
-Write-Host "Rebooting..." -ForegroundColor Green
-Set-Sleep -Seconds 3
+Write-Host "Rebooting..." -ForegroundColor Red
+Start-Sleep -Seconds 3
 Restart-Computer -Force
