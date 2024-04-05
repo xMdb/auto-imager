@@ -37,9 +37,8 @@ Write-Host "Grabbing the Microsoft Activation Script and activating..."
 
 Write-Host "Removing OneDrive and Edge..."
 Start-Process "$env:windir\System32\OneDriveSetup.exe" "/uninstall"
-$WebFile = "https://github.com/ShadowWhisperer/Remove-MS-Edge/blob/main/Remove-EdgeOnly.exe?raw=true"
-(New-Object System.Net.WebClient).DownloadFile($WebFile, "$env:TEMP\Remove.EdgeOnly.exe")
-Start-Process -FilePath "$env:temp\Remove-EdgeOnly.exe" -Wait
+(New-Object System.Net.WebClient).DownloadFile("https://github.com/ShadowWhisperer/Remove-MS-Edge/blob/main/Remove-EdgeOnly.exe?raw=true", "$env:TEMP\Remove-EdgeOnly.exe")
+Start-Process -FilePath "$env:TEMP\Remove-EdgeOnly.exe" -Wait
 
 Write-Host "Installing default programs..."
 winget install LibreWolf.LibreWolf 7zip.7zip VideoLAN.VLC 9PF4KZ2VN4W9 9MSMLRH6LZF3 --silent --accept-source-agreements --accept-package-agreements --force
