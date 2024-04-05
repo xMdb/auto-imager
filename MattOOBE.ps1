@@ -1,3 +1,11 @@
+if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
+        Write-Host "Copying script to temp folder and running..."
+        if (!(Test-Path -Path "$($env:TEMP)\psScripts.tmp\")) { New-Item "$($env:TEMP)\psScripts.tmp\" -Type Directory }
+        $ScriptName = Split-Path -Path $PSCommandPath -Leaf
+        Copy-Item -Path $PSCommandPath -Destination "$($env:TEMP)\psScripts.tmp\$($ScriptName)" -Force
+        Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$($env:TEMP)\psScripts.tmp\$($ScriptName)`"" -Verb RunAs; exit
+    }
+
 Write-Host "MATT'S OOBE SCRIPT" -ForegroundColor Blue
 Write-Host "====================" -ForegroundColor Blue
 Write-Host ""
