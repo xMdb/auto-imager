@@ -48,7 +48,7 @@ Write-Host "Removing OneDrive and Edge..."
 Start-Process "$env:windir\System32\OneDriveSetup.exe" "/uninstall" -ErrorAction SilentlyContinue
 (New-Object System.Net.WebClient).DownloadFile("https://github.com/ShadowWhisperer/Remove-MS-Edge/blob/main/Remove-EdgeOnly.exe?raw=true", "$env:TEMP\Remove-EdgeOnly.exe")
 Start-Process -FilePath "$env:TEMP\Remove-EdgeOnly.exe" -Wait
-Remove-Item -FilePath "$env:appdata\Microsoft\Windows\Start Menu\Programs\Microsoft Edge.lnk" -Force -ErrorAction SilentlyContinue
+Remove-Item -Path "$env:appdata\Microsoft\Windows\Start Menu\Programs\Microsoft Edge.lnk" -Force -ErrorAction SilentlyContinue
 
 Write-Host "Setting winget to use the wininet downloader..."
 $jsonContent = @"
