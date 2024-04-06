@@ -33,7 +33,7 @@ Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server' 
 Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
 
 Write-Host "Setting the VNC resolution to 1920x1080..."
-Install-PackageProvider -Name NuGet -Force -MinimumVersion 2.8.5.201
+Install-PackageProvider -Name NuGet -Force -MinimumVersion 2.8.5.201 | Out-Null
 Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
 Install-Module -Name ChangeScreenResolution -Scope CurrentUser -Force
 Import-Module ChangeScreenResolution
