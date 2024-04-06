@@ -7,6 +7,8 @@ if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
     Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$($env:TEMP)\psScripts.tmp\$($ScriptName)`"" -Verb RunAs; exit
 }
 
+$Host.UI.RawUI.ForegroundColor = "White"
+$Host.UI.RawUI.BackgroundColor = "Black"
 Write-Host "MATT'S OOBE SCRIPT" -ForegroundColor Blue
 Write-Host "====================" -ForegroundColor Blue
 Write-Host ""
@@ -18,7 +20,7 @@ if ($null -eq $virtioPath) {
     $virtioPath = Get-ChildItem -Path E:\ -Recurse -Filter "virtio-win-guest-tools.exe" -ErrorAction SilentlyContinue
 }
 if ($null -eq $virtioPath) {
-    Write-Host "VirtIO ISO not found. Please install manually."
+    Write-Host "VirtIO ISO not found. Please install manually." -ForegroundColor Red
 } else {
     Start-Process -FilePath $virtioPath.FullName -ArgumentList "/quiet /norestart" -Wait
 }
@@ -26,16 +28,16 @@ if ($null -eq $virtioPath) {
 Write-Host "Done." -ForegroundColor Green
 Write-Host ""
 
-Write-Host "Enable Remote Desktop connections..."
+Write-Host "Enabling Remote Desktop connections..."
 Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server' -Name fDenyTSConnections -Value 0
 Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
 
 Write-Host "Setting the VNC resolution to 1920x1080..."
-Install-PackageProvider -Name NuGet -Force -MinimumVersion 2.8.5.201 -Force
+Install-PackageProvider -Name NuGet -Force -MinimumVersion 2.8.5.201
 Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
-Install-Module -Name DisplaySettings -Scope CurrentUser -Force
-Import-Module DisplaySettings
-Set-DisplayResolution -Width 1920 -Height 1080
+Install-Module -Name ChangeScreenResolution -Scope CurrentUser -Force
+Import-Module ChangeScreenResolution
+Set-ScreenResolution -Width 1920 -Height 1080
 
 Write-Host "Grabbing the Microsoft Activation Script and activating..."
 & ([ScriptBlock]::Create((Invoke-RestMethod https://massgrave.dev/get))) /HWID
@@ -45,7 +47,17 @@ Start-Process "$env:windir\System32\OneDriveSetup.exe" "/uninstall"
 (New-Object System.Net.WebClient).DownloadFile("https://github.com/ShadowWhisperer/Remove-MS-Edge/blob/main/Remove-EdgeOnly.exe?raw=true", "$env:TEMP\Remove-EdgeOnly.exe")
 Start-Process -FilePath "$env:TEMP\Remove-EdgeOnly.exe" -Wait
 
-Write-Host "Installing default programs..."
+Write-Host "Setting winget to use the wininet downloader..."
+$jsonContent = @"
+{
+    "network": {
+        "downloader": "wininet"
+    }
+}
+"@
+$jsonContent | Set-Content -Path "$env:LOCALAPPDATA\Packages\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe\LocalState\settings.json" -Force
+
+Write-Host "Installing default programs with winget..."
 winget install LibreWolf.LibreWolf 7zip.7zip VideoLAN.VLC 9PF4KZ2VN4W9 9MSMLRH6LZF3 --silent --accept-source-agreements --accept-package-agreements --force
 
 Write-Host "Setting LibreWolf as the default browser..."
@@ -73,6 +85,25 @@ if ($autologinyn -eq "y") {
     Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon' -Name DefaultPassword -Value $password
     Write-Host "Done."
 }
+
+Write-Host ""
+Write-Host "====================" -ForegroundColor Yellow
+Write-Host "CLEAN UP" -ForegroundColor Yellow
+Write-Host "====================" -ForegroundColor Yellow
+Write-Host ""
+
+Write-Host "Removing Powershell NuGet provider and DisplaySettings module..."
+(Get-PackageProvider NuGet).ProviderPath | Remove-Item -Force -ErrorAction SilentlyContinue
+Remove-Item -Path "$env:ProgramFiles\PackageManagement\ProviderAssemblies\nuget\*" -Force -Recurse -ErrorAction SilentlyContinue
+Set-PSRepository -Name PSGallery -InstallationPolicy Untrusted
+Remove-Module DisplaySettings -Force
+Remove-Item -Path "$env:USERPROFILE\Documents\WindowsPowerShell" -Force -Recurse -ErrorAction SilentlyContinue
+
+Write-Host "Removing temporary files..."
+Remove-Item -Path "$env:TEMP\*" -Force -Recurse -ErrorAction SilentlyContinue
+
+Write-Host "Removing scheduled tasks..."
+Get-ScheduledTask -TaskName MattOOBE | Unregister-ScheduledTask -Confirm:$false
 
 Write-Host "Cleaning both public and user desktops..."
 Remove-Item -Path "$env:public\Desktop\*" -Force -Recurse
