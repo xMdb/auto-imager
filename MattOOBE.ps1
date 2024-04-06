@@ -6,8 +6,6 @@ if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
     Copy-Item -Path $PSCommandPath -Destination "$($env:TEMP)\psScripts.tmp\$($ScriptName)" -Force
     Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$($env:TEMP)\psScripts.tmp\$($ScriptName)`"" -Verb RunAs; exit
 }
-$host.UI.RawUI.ForegroundColor = "White"
-$host.UI.RawUI.BackgroundColor = "Black"
 Clear-Host
 Write-Host ""
 Write-Host "MATT'S OOBE SCRIPT" -ForegroundColor Blue
@@ -50,6 +48,7 @@ Write-Host "Removing OneDrive and Edge..."
 Start-Process "$env:windir\System32\OneDriveSetup.exe" "/uninstall" -ErrorAction SilentlyContinue
 (New-Object System.Net.WebClient).DownloadFile("https://github.com/ShadowWhisperer/Remove-MS-Edge/blob/main/Remove-EdgeOnly.exe?raw=true", "$env:TEMP\Remove-EdgeOnly.exe")
 Start-Process -FilePath "$env:TEMP\Remove-EdgeOnly.exe" -Wait
+Remove-Item -FilePath "$env:appdata\Microsoft\Windows\Start Menu\Programs\Microsoft Edge.lnk" -Force -ErrorAction SilentlyContinue
 
 Write-Host "Setting winget to use the wininet downloader..."
 $jsonContent = @"
@@ -79,12 +78,12 @@ Write-Host "====================" -ForegroundColor Yellow
 Write-Host ""
 $computerName = Read-Host -Prompt "What should the computer name be?"
 Write-Host "Renaming computer to $computerName..."
-Rename-Computer -NewName $computerName -Force
+Rename-Computer -NewName $computerName -Force | Out-Null
 Write-Host "Done."
 
-$autologinyn = Read-Host -Prompt "Should I enable autologon for you? (y/n)"
+$autologinyn = Read-Host -Prompt "Should I permanently enable auto-login for you? (y/n)"
 if ($autologinyn -eq "y") {
-    Write-Host "Enabling autologon..."
+    Write-Host "Enabling auto-login..."
     $username = Read-Host -Prompt "What is the username?"
     $password = Read-Host -Prompt "What is the password?" -AsSecureString
     $password = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($password))
@@ -92,6 +91,24 @@ if ($autologinyn -eq "y") {
     Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon' -Name DefaultUserName -Value $username
     Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon' -Name DefaultPassword -Value $password
     Write-Host "Done."
+}
+
+$novaconnectyn = Read-Host -Prompt "Should I map Nova to N: for you? (y/n)"
+if ($novaconnectyn -eq "y") {
+    $novaUsr = Read-Host -Prompt "What is the username?"
+    $novaPwd = Read-Host -Prompt "What is the password?" -AsSecureString
+    $novaC = New-Object System.Management.Automation.PSCredential ($novaUsr, $novaPwd)
+    New-PSDrive -Name 'N' -PSProvider 'FileSystem' -Root '\\NOVA\Storage' -Scope 'Global' -Persist -Credential $novaC | Out-Null
+    Write-Host "Done."
+    $wallpaperyn = Read-Host -Prompt "Should I open the wallpapers folder for you? (y/n)"
+    if ($wallpaperyn -eq "y") {
+        Start-Process "N:\Files\(4) All About Matty\wallpapers"
+        Write-Host "Pausing... Continue to open the lock screen settings."
+        Pause
+        Start-Process "ms-settings:lockscreen"
+        Write-Host "Pausing..."
+        Pause
+    }
 }
 
 Write-Host ""
@@ -124,6 +141,6 @@ Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies
 Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System' -Name PromptOnSecureDesktop -Value 1
 Write-Host "Done."
 
-Write-Host "Rebooting..." -ForegroundColor Red
-Start-Sleep -Seconds 3
-Restart-Computer -Force
+Write-Host "Rebooting." -ForegroundColor Red
+Start-Sleep -Seconds 2
+Restart-Computer -Timeout 10
