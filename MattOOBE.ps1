@@ -6,9 +6,10 @@ if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
     Copy-Item -Path $PSCommandPath -Destination "$($env:TEMP)\psScripts.tmp\$($ScriptName)" -Force
     Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$($env:TEMP)\psScripts.tmp\$($ScriptName)`"" -Verb RunAs; exit
 }
-
-$Host.UI.RawUI.ForegroundColor = "White"
-$Host.UI.RawUI.BackgroundColor = "Black"
+$host.UI.RawUI.ForegroundColor = "White"
+$host.UI.RawUI.BackgroundColor = "Black"
+Clear-Host
+Write-Host ""
 Write-Host "MATT'S OOBE SCRIPT" -ForegroundColor Blue
 Write-Host "====================" -ForegroundColor Blue
 Write-Host ""
@@ -28,6 +29,12 @@ if ($null -eq $virtioPath) {
 Write-Host "Enabling Remote Desktop connections..."
 Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server' -Name fDenyTSConnections -Value 0
 Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+
+Write-Host "Disabling sleep..."
+Powercfg /Change monitor-timeout-ac 60
+Powercfg /Change monitor-timeout-dc 60
+Powercfg /Change standby-timeout-ac 0
+Powercfg /Change standby-timeout-dc 0
 
 Write-Host "Setting the VNC resolution to 1920x1080..."
 Install-PackageProvider -Name NuGet -Force -MinimumVersion 2.8.5.201 | Out-Null
@@ -92,6 +99,7 @@ Write-Host "====================" -ForegroundColor Yellow
 Write-Host "CLEAN UP" -ForegroundColor Yellow
 Write-Host "====================" -ForegroundColor Yellow
 Write-Host ""
+Write-Host ""
 
 Write-Host "Removing Powershell NuGet provider and DisplaySettings module..."
 (Get-PackageProvider NuGet).ProviderPath | Remove-Item -Force -ErrorAction SilentlyContinue
@@ -109,6 +117,11 @@ Get-ScheduledTask -TaskName MattOOBE | Unregister-ScheduledTask -Confirm:$false
 Write-Host "Cleaning both public and user desktops..."
 Remove-Item -Path "$env:public\Desktop\*" -Force -Recurse
 Remove-Item -Path "$env:USERPROFILE\Desktop\*" -Force -Recurse
+
+Write-Host "Re-enabling UAC..."
+Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System' -Name EnableLUA -Value 1
+Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System' -Name ConsentPromptBehaviorAdmin -Value 5
+Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System' -Name PromptOnSecureDesktop -Value 1
 Write-Host "Done."
 
 Write-Host "Rebooting..." -ForegroundColor Red
