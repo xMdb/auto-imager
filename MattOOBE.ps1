@@ -26,7 +26,12 @@ if ($null -eq $virtioPath) {
 Write-Host "Done." -ForegroundColor Green
 Write-Host ""
 
+Write-Host "Enable Remote Desktop connections..."
+Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server' -Name fDenyTSConnections -Value 0
+Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+
 Write-Host "Setting the VNC resolution to 1920x1080..."
+Install-PackageProvider -Name NuGet -Force -MinimumVersion 2.8.5.201 -Force
 Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
 Install-Module -Name DisplaySettings -Scope CurrentUser -Force
 Import-Module DisplaySettings
