@@ -95,10 +95,12 @@ if ($autologinyn -eq "y") {
 
 $novaconnectyn = Read-Host -Prompt "Should I map Nova to N: for you? (y/n)"
 if ($novaconnectyn -eq "y") {
-    $novaUsr = Read-Host -Prompt "What is the username?"
-    $novaPwd = Read-Host -Prompt "What is the password?" -AsSecureString
-    $novaC = New-Object System.Management.Automation.PSCredential ($novaUsr, $novaPwd)
-    New-PSDrive -Name 'N' -PSProvider 'FileSystem' -Root '\\NOVA\Storage' -Scope 'Global' -Persist -Credential $novaC | Out-Null
+    # $novaUsr = Read-Host -Prompt "What is the username?"
+    # $novaPwd = Read-Host -Prompt "What is the password?" -AsSecureString
+    # $novaC = New-Object System.Management.Automation.PSCredential ($novaUsr, $novaPwd)
+    # New-PSDrive -Name 'N' -PSProvider 'FileSystem' -Root '\\NOVA\Storage' -Scope 'Global' -Persist -Credential $novaC | Out-Null
+    # above is broken...
+    net use N: \\nova.box\Storage /user:nova nova /persistent:yes
     Write-Host "Done."
     $wallpaperyn = Read-Host -Prompt "Should I open the wallpapers folder for you? (y/n)"
     if ($wallpaperyn -eq "y") {
@@ -142,5 +144,5 @@ Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies
 Write-Host "Done."
 
 Write-Host "Rebooting." -ForegroundColor Red
-Start-Sleep -Seconds 2
-Restart-Computer -Timeout 10
+Start-Sleep -Seconds 5
+Restart-Computer -Force
