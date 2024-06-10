@@ -29,8 +29,8 @@ Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server' 
 Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
 
 Write-Host "Disabling sleep..."
-Powercfg /Change monitor-timeout-ac 60
-Powercfg /Change monitor-timeout-dc 60
+Powercfg /Change monitor-timeout-ac 0
+Powercfg /Change monitor-timeout-dc 0
 Powercfg /Change standby-timeout-ac 0
 Powercfg /Change standby-timeout-dc 0
 
