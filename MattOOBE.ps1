@@ -42,7 +42,7 @@ Import-Module ChangeScreenResolution
 Set-ScreenResolution -Width 1920 -Height 1080
 
 Write-Host "Grabbing the Microsoft Activation Script and activating..."
-& ([ScriptBlock]::Create((Invoke-RestMethod https://massgrave.dev/get))) /HWID
+& ([ScriptBlock]::Create((Invoke-RestMethod https://get.activated.win))) /HWID
 
 Write-Host "Removing OneDrive and Edge..."
 Start-Process "$env:windir\System32\OneDriveSetup.exe" "/uninstall" -ErrorAction SilentlyContinue
