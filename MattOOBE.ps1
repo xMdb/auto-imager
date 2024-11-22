@@ -66,6 +66,7 @@ Write-Host "Setting up the Microsoft Store..."
 wsreset -i
 
 Write-Host "Installing the latest version of winget and its dependencies..."
+$ProgressPreference = 'SilentlyContinue'
 # thanks https://github.com/ChrisTitusTech/winutil/
 $versionVCLibs = "14.00"
 $fileVCLibs = "https://aka.ms/Microsoft.VCLibs.x64.${versionVCLibs}.Desktop.appx"
@@ -83,6 +84,7 @@ Invoke-WebRequest -Uri $licenseWingetUrl -OutFile $ENV:TEMP\License1.xml
 Invoke-WebRequest -Uri $assetUrl -OutFile $ENV:TEMP\Microsoft.DesktopAppInstaller.msixbundle
 Add-AppxProvisionedPackage -Online -PackagePath $ENV:TEMP\Microsoft.DesktopAppInstaller.msixbundle -DependencyPackagePath $ENV:TEMP\Microsoft.VCLibs.x64.Desktop.appx, $ENV:TEMP\Microsoft.UI.Xaml.x64.appx -LicensePath $ENV:TEMP\License1.xml
 Add-AppxPackage -Path https://cdn.winget.microsoft.com/cache/source.msix
+$ProgressPreference = 'Continue'
 
 Write-Host "Refreshing environment variables..."
 $ENV:PATH = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
